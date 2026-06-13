@@ -1,173 +1,103 @@
-# Shuttle Ride
+# 🚌 ShuttleRide — Bus Booking System
 
-by Vivek Tangudu
+A full-stack bus/shuttle ticket-booking web application. Users sign in with a one-time password (OTP), search for buses between two stops on a chosen date, pick a seat, book it, and manage or cancel their bookings — all from a clean React interface.
 
-### Scope of the project
+<p align="left">
+  <img alt="React" src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black">
+  <img alt="React Router" src="https://img.shields.io/badge/React_Router-6-CA4245?logo=reactrouter&logoColor=white">
+  <img alt="Axios" src="https://img.shields.io/badge/Axios-HTTP-5A29E4?logo=axios&logoColor=white">
+  <img alt="JWT" src="https://img.shields.io/badge/Auth-JWT-000000?logo=jsonwebtokens&logoColor=white">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
+</p>
 
-- **Users**
-    - Book a bus seat
-    - View Seat plan of the bus 
-    - Cancel booking
-    - Register in the website
-- Admin
-    - Add a bus
-    - Modify bus ( Need to implement )
+---
 
-### Tech stack
+## ✨ Features
 
-- **Frontend**: React.js
-- **Backend**: Springboot
-- **Database**: Mysql ( Used an instance of AWS)
+- **OTP-based authentication** — passwordless login with a mobile number and role; a JWT is issued on verification and stored client-side.
+- **Bus search** — find available buses between a source and destination for given travel dates.
+- **Seat booking** — select a specific seat on a bus and confirm the booking.
+- **Manage bookings** — view all of your bookings with bus name, seat number and booking time.
+- **Cancel bookings** — cancel any successful booking directly from the bookings table.
+- **Protected sessions** — the stored JWT is validated against the backend before granting access.
 
-### Session management
+## 🛠️ Tech Stack
 
-- We generate a JWT token after successful login and pass it to the frontend for storage in the webpage. For subsequent operations, we send this token back to the backend for verification. The JWT also serves as the user identifier—by decoding it, we can retrieve the user_id. If the JWT has expired or is malfunctioning, authorization for any operations is denied. (Note: This process doesn't work in the Terminal.)
+| Layer | Technology |
+|------|------------|
+| Frontend | React 18, React Router DOM 6 |
+| HTTP | Axios / Fetch API |
+| Auth | JWT (stored in `localStorage`), OTP verification |
+| Tooling | Create React App (react-scripts 5) |
+| Backend API | REST service expected at `http://localhost:5001` (separate repository) |
 
-### Search
+## 🧭 Application Routes
 
-- Search for buses works using a pair of integers (representing longitude and latitude). We added stops using pairs of integers as well. To search for a journey from one place to another, we use these integer pairs. (We need to improve this to find buses within a particular radius.)
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` , `/LandingPage` | Landing | Entry / role selection |
+| `/login` | Login | OTP login by mobile number |
+| `/register` | Register | New user registration |
+| `/Home` | Home | Search buses & book seats |
+| `/manage-bookings` | Manage Bookings | View / cancel bookings |
 
-DB design. 
+## 🔌 Backend API
 
-![Screenshot 2024-10-24 at 5.30.57 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_5.30.57_PM.png)
+The frontend (in [`shuttle_ride/`](./shuttle_ride)) talks to a REST backend at `http://localhost:5001`:
 
-## API’s List
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| `POST` | `/auth/send_otp` | Send OTP for a mobile number + role |
+| `POST` | `/auth/verify_otp` | Verify OTP, return a JWT |
+| `POST` | `/auth/jwt` | Validate a JWT |
+| `POST` | `/users/search` | Search buses (source, destination, dates) |
+| `POST` | `/users/seat-booking` | Book a seat on a bus |
+| `POST` | `/users/bookings` | List the logged-in user's bookings |
+| `POST` | `/users/cancel-booking` | Cancel a booking |
 
-- **Login**
-    - **Desc**: When a user wants to login, He uses this api tho send his mobile number.
-    - **Endpoint:**  `/auth/send_otp`
-    - **Method**: POST
-    - **Request Body**: Details of the user (mobile number).
-    - **Response**: Confirmation message or error response.( can be message where mobile number can't be found in the DB). For this I have twillio api to send an sms. ( works for verified numbers).
-    
-- **Verify otp**
-    - **Desc**: Verify his OTP
-    - **Endpoint:**`/auth/verify_otp`
-    - **Method**: POST
-    - **Request Body**: mobile number, OTP.
-    - **Response**: Confirmation message or error response. along with JWT token.
-- **Verify JWT**
-    - **Desc**: When a users opens home page, we verify his JWT token.
-    - **Endpoint:**`/auth/jwt`
-    - **Method**: POST
-    - **Request Body**:  JWT
-    - **Response:**  valid token or not. if it is invalid token, User moves to login page.
-- **Register**
-    - **Desc**: User wants to register himself.
-    - **Endpoint:**  `/users/create`
-    - **Method**: POST
-    - **Request Body**: mobileNumber, gender, email, Name
-    - **Response**: True or false. And then he is moved to login page.  While registering same email or phone_number can't be used again. Sends an error message if you use it again.
-    
-- **getUserBookings**
-    - **Desc**: User wants to have all his past bookings made by him.
-    - **Endpoint:**  `/users/bookings`
-    - **Method**: POST
-    - **Request Body**: JWT
-    - **Response**: List of all the bookings based on the user id.
-- **book_seat**
-    - **Desc**: User selected a seat and wants to book the seat.
-    - **Endpoint:**  `/users/seat-booking`
-    - **Method**: POST
-    - **Request Body**: JWT, seat, source_latitude, source_longtitude,destination_latitude,destination_longitude
-    - **Response**: True or false. True means booking was confirm and False means failed to book the seat.    If two people wants to book same seat at the same time, Only one can get the seats in the database seat changes to unavailable . So the other person can't.
-    
-- **Search_buses**
-    - **Desc**: User wants to search for buses between some source and destination.
-    - **Endpoint:** `/users/search`
-    - **Method**: POST
-    - **Request Body**: JWT, seat, source_latitude, source_longtitude,destination_latitude,destination_longitude
-    - **Response**: True or false. True means booking was confirm and False means failed to book the seat.
-- **Cancel_booking**
-    - **Desc**: User wants to cancel a booking.
-    - **Endpoint:** `/users/cancel-booking`
-    - **Method**: POST
-    - **Request Body**: JWT, bookingId
-    - **Response**: True or false. True means the operation was Successful and false means failed to do.
+## 🚀 Getting Started
 
-**Interactions by the admin can be only done through terminal whereas the User can interaction with both Web and Terminal.**
+```bash
+# clone and enter the frontend
+git clone https://github.com/vivektangudu123/busBookingSystem.git
+cd busBookingSystem/shuttle_ride
 
-### User flow in terminal.
+# install dependencies
+npm install
 
-![Screenshot 2024-10-24 at 4.15.37 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.15.37_PM.png)
+# start the dev server (http://localhost:3000)
+npm start
+```
 
-2 for login. After entering my mobile number. I received an OTP.
+> The app expects the booking backend to be running at `http://localhost:5001`.
 
-![Screenshot 2024-10-24 at 4.16.15 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.16.15_PM.png)
+### Available scripts
 
-![Screenshot 2024-10-24 at 4.17.30 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.17.30_PM.png)
+| Command | Description |
+|---------|-------------|
+| `npm start` | Run the app in development mode |
+| `npm run build` | Build an optimized production bundle |
+| `npm test` | Run the test runner |
 
-![Screenshot 2024-10-24 at 4.22.19 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.22.19_PM.png)
+## 📁 Project Structure
 
-And then List of busses are shown 
+```
+busBookingSystem/
+└── shuttle_ride/            # React frontend
+    ├── src/
+    │   ├── pages/           # LandingPage, login, register, home, bookings
+    │   ├── apicalls/        # user.js — auth, search, booking API calls
+    │   └── App.js           # routes
+    └── package.json
+```
 
-![Screenshot 2024-10-24 at 4.22.51 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.22.51_PM.png)
+## 👤 Author
 
-Now you can view the seat plan 
+**Vivek Tangudu**
 
-![Screenshot 2024-10-24 at 4.23.14 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.23.14_PM.png)
+- GitHub: [@vivektangudu123](https://github.com/vivektangudu123)
+- LinkedIn: [vivektangudu](https://www.linkedin.com/in/vivektangudu)
 
-red seats are unavailable and remaining are available.
+## 📄 License
 
-By selecting a Seat, he will get confirmation message.
-
-### User flow in web
-
-![Screenshot 2024-10-24 at 4.44.23 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.44.23_PM.png)
-
-Landing page.
-
-![Screenshot 2024-10-24 at 4.44.51 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.44.51_PM.png)
-
-login page 
-
-![Screenshot 2024-10-24 at 4.46.42 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.46.42_PM.png)
-
-enter otp
-
-![Screenshot 2024-10-24 at 9.13.16 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_9.13.16_PM.png)
-
-![Screenshot 2024-10-24 at 4.47.20 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.47.20_PM.png)
-
-Home page 
-
-![Screenshot 2024-10-24 at 4.47.51 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.47.51_PM.png)
-
-Booking page. ( another button will be present, if the booking was not cancelled).
-
-![Screenshot 2024-10-24 at 4.48.41 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.48.41_PM.png)
-
-Search results.
-
-![Screenshot 2024-10-24 at 4.49.14 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.49.14_PM.png)
-
-![Screenshot 2024-10-24 at 4.50.58 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.50.58_PM.png)
-
-colour of the bus changes, based on the availability.
-
-![Screenshot 2024-10-24 at 4.49.51 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/835612a2-0890-402e-bd09-1411cc352875.png)
-
-Select a seat if you want to book and press book. To confirm booking, Booking status will given as an alert.
-
-### Admin flow
-
-![Screenshot 2024-10-24 at 4.53.27 PM.png](Shuttle%20Ride%201299dfc3ead18019912bc4a50d7eaef3/Screenshot_2024-10-24_at_4.53.27_PM.png)
-
-As of now admin can only add a bus. 
-
-### Future scope
-
-- Use a builder method to create different types of Buses ( economy bus, luxury bus). Can also do for seats.
-- Have a better seat locking mechanism, (scalability is an issue).
-- Notifications.
-    - Different types of notifications, using interfaces ( important, promotional) and sending them in different ways.( text, mail).
-    - Notifications in a trip. Set of passengers that belongs to that trip, sending them about their trip.
-- Strategy pattern
-    - Searching buses based on ETA or based on duration.
-    - Search buses around particular radius( 1KM , stops around 1km vicnity of user).
-
-[https://github.com/vivektangudu123/moveinsync](https://github.com/vivektangudu123/moveinsync)
-
-### Refernce project
-
-[https://github.com/vivektangudu123/clickcare](https://github.com/vivektangudu123/clickcare)
+Released under the MIT License.
